@@ -1,0 +1,262 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap");
+
+/* Inherit cursor styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  cursor: none;
+}
+
+/* Main container styles */
+.home-container {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+    url("../../public/assets/background-img.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-overlay {
+  min-height: 100vh;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.608);
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(3px);
+}
+
+.home-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+/* Welcome text styles */
+.welcome-text {
+  text-align: center;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.welcome-text h1 {
+  color: white;
+  font-family: "Cinzel Decorative", serif;
+  font-size: 3.5rem;
+  letter-spacing: 2px;
+  margin: 0;
+  line-height: 1.2;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.219);
+}
+
+.welcome-text img {
+  max-width: 100%;
+  height: auto;
+  width: 800px; /* Default width for larger screens */
+}
+
+/* Welcome message styles */
+.welcome-message {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: "Inter", sans-serif;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.welcome-message p {
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+}
+
+
+/* Auth buttons styles */
+.auth-buttons {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2rem;
+  justify-content: center;
+  align-items: center;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.auth-buttons span {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.auth-buttons a {
+  text-decoration: none;
+  display: flex;
+}
+
+.home-login-button,
+.home-signup-button {
+  padding: 1rem 3rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  font-family: "Inter", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-login-button {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+  position: relative;
+  overflow: scroll;
+}
+
+.home-signup-button {
+  background: rgb(128, 0, 0);
+  color: white;
+  position: relative;
+  overflow: scroll;
+}
+
+.home-login-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+}
+
+.home-signup-button:hover {
+  background: rgb(150, 0, 0);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(128, 0, 0, 0.3);
+}
+
+/* Custom cursor styles */
+.cursor {
+  width: 20px;
+  height: 20px;
+  border: 2px solid white;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s;
+}
+
+.cursor-dot {
+  width: 4px;
+  height: 4px;
+  background: white;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+}
+
+.glow {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  filter: blur(5px);
+}
+
+.trail {
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9997;
+  transform: translate(-50%, -50%);
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Media queries for responsiveness */
+@media screen and (max-width: 1024px) {
+  .welcome-text img {
+    width: 600px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .welcome-text img {
+    width: 400px;
+  }
+  .welcome-text h1 {
+    font-size: 2.5rem;
+  }
+
+  .welcome-message p {
+    font-size: 1rem;
+  }
+
+  .auth-buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .home-login-button,
+  .home-signup-button {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .welcome-text img {
+    width: 300px;
+  }
+}

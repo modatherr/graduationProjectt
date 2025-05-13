@@ -1,0 +1,456 @@
+/* Import fonts from Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+
+/* Reset default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  cursor: none;
+}
+
+/* Prevent scrolling when nav menu is open */
+body.menu-open {
+  overflow: scroll;
+  position: fixed;
+  width: 100%;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: scroll;
+}
+
+/* Set default font for the entire body */
+body {
+  font-family: "Inter", sans-serif;
+}
+
+/* Custom cursor styling */
+.cursor {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transition: width 0.3s ease, height 0.3s ease;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference;
+}
+
+/* Inner cursor dot */
+.cursor-dot {
+  width: 4px;
+  height: 4px;
+  background-color: white;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s ease;
+}
+
+/* Cursor trail effect */
+.trail {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease;
+  animation: trailPulse 1s ease-out infinite;
+}
+
+/* Cursor glow effect */
+.glow {
+  position: fixed;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.062) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  mix-blend-mode: screen;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+/* Main container styles */
+.login-container {
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+    url("../../public/assets/background-img.jpg");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: scroll;
+}
+
+/* Dark overlay with blur effect */
+.login-overlay {
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.608);
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(3px);
+  overflow: scroll;
+}
+
+/* Navigation bar styling */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 2rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(128, 0, 0, 0.95),
+    rgba(128, 0, 0, 0.85)
+  );
+  height: 60px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
+}
+
+/* Logo styling with hover effect */
+.logo {
+  height: 40px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+/* Navigation links container */
+.nav-links {
+  display: flex;
+  gap: 3rem;
+}
+
+/* Navigation link styling */
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  position: relative;
+  padding: 5px 0;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Underline animation for navigation links */
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: white;
+  transition: width 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+/* Content container */
+.login-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+/* Login title styling */
+h1 {
+  color: white;
+  font-size: 4rem;
+  margin: 0;
+  font-family: 'Cinzel Decorative', serif;
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.219);
+  animation: fadeInDown 0.8s ease-out;
+}
+
+/* Login form styling */
+form {
+  width: 100%;
+  max-width: 450px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2.5rem;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: fadeIn 0.8s ease-out;
+}
+
+/* Input field container */
+.input-group {
+  width: 100%;
+}
+
+/* Input field wrapper */
+.input-wrapper {
+  width: 100%;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+/* Input field hover effect */
+.input-wrapper:focus-within {
+  transform: translateY(-2px);
+}
+
+/* Input field styling */
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: transparent;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: "Inter", sans-serif;
+}
+
+/* Input field focus effect */
+input:focus {
+  border-bottom-color: white;
+}
+
+/* Placeholder text styling */
+input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+  opacity: 1;
+}
+
+/* Clear input button */
+.clear-input {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid white;
+  padding: 0 1px;
+  border-radius: 2px;
+  background: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 0.8rem;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+
+.clear-input:hover {
+  color: black;
+  background-color: white;
+}
+
+/* Show clear button when input has content */
+input:not(:placeholder-shown) + .clear-input {
+  display: block;
+}
+
+/* Login options styling */
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+.login-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.forgot-password-link {
+  color: rgb(128, 0, 0);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.forgot-password-link:hover {
+  color: rgb(150, 0, 0);
+}
+
+.forgot-password-link::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background-color: rgb(128, 0, 0);
+  transition: width 0.3s ease;
+}
+
+.forgot-password-link:hover::after {
+  width: 100%;
+}
+
+/* Login button styling */
+.login-button {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(45deg, rgb(128, 0, 0), rgb(180, 0, 0));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+  position: relative;
+  overflow: scroll;
+}
+
+/* Login button hover and active states */
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(128, 0, 0, 0.4);
+}
+
+.login-button:active {
+  transform: translateY(0);
+}
+
+/* Auth switch styles */
+.auth-switch {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.auth-link {
+  color: white;
+  text-decoration: none;
+  margin-left: 0.5rem;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.auth-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: white;
+  transition: width 0.3s ease;
+}
+
+.auth-link:hover {
+  color: #2980b9;
+}
+
+.auth-link:hover::after {
+  width: 100%;
+}
+
+/* Mobile responsiveness */
+@media screen and (max-width: 768px) {
+  .login-content {
+    padding: 1rem;
+    justify-content: flex-start;
+    padding-top: 2rem;
+  }
+
+  form {
+    margin-bottom: 2rem;
+  }
+}
+
+/* Fade in animation for form */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade in animation for title */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Cursor trail pulse animation */
+@keyframes trailPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+}
