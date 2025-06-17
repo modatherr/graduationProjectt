@@ -1,0 +1,310 @@
+.programming-roadmap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    /* background-color: #f0f5ff;  Light blue background */
+}
+
+.programming-roadmap h2 {
+    text-align: center;
+    color: #2988e8;
+    margin-bottom: 30px;
+}
+
+/* Language Selection */
+.language-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.language-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background: #ffffff;  /* White background for contrast */
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.language-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    background: #f8fbff;  /* Slightly different background on hover */
+}
+
+.language-icon {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.language-name {
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+/* Questions */
+.questions-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #e8f4fd;  /* Lighter blue background */
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.question-text {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #2c3e50;
+    font-size: 1.3em;
+}
+
+.answer-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.answer-buttons button {
+    padding: 10px 25px;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 25px;
+    background: #3498db;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.answer-buttons button:hover {
+    background: #2980b9;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #eee;
+    border-radius: 3px;
+    overflow: scroll;
+}
+
+.progress {
+    height: 100%;
+    background: #3498db;
+    transition: width 0.3s ease;
+}
+
+/* Roadmap */
+.roadmap-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.loading {
+    text-align: center;
+    color: #666;
+    font-size: 1.2em;
+    margin: 40px 0;
+}
+
+.error {
+    color: #e74c3c;
+    text-align: center;
+    padding: 20px;
+    background: #fde8e7;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.roadmap-content {
+    background: #e8f4fd;  /* Lighter blue background */
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.roadmap-content > h2 {
+    color: #2988e8;
+    margin-bottom: 25px;
+    text-align: center;
+    font-size: 1.8em;
+    border-bottom: 2px solid #2988e8;
+    padding-bottom: 15px;
+}
+
+.roadmap-content h3 {
+    color: #3498db;
+    margin: 20px 0 10px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #eee;
+}
+
+.roadmap-content li {
+    margin: 10px 0;
+    padding-left: 20px;
+    position: relative;
+}
+
+.roadmap-content li:before {
+    content: "•";
+    color: #3498db;
+    position: absolute;
+    left: 0;
+}
+
+.roadmap-content p {
+    margin: 10px 0;
+    line-height: 1.6;
+    color: #555;
+}
+
+.restart-button {
+    display: block;
+    margin: 30px auto 0;
+    padding: 12px 25px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.restart-button:hover {
+    background: #2980b9;
+}
+
+.roadmap-sections {
+    margin-top: 30px;
+}
+
+.roadmap-section {
+    margin-bottom: 40px;
+    padding: 20px;
+    background: #ffffff;  /* White background for contrast */
+    border-radius: 8px;
+    border-left: 4px solid #2988e8;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.roadmap-section h2 {
+    color: #2988e8;
+    margin: 0 0 20px 0;
+    font-size: 1.5em;
+    text-align: left;
+    border-bottom: none;
+}
+
+.roadmap-section h3 {
+    color: #2c3e50;
+    margin: 25px 0 15px;
+    font-size: 1.2em;
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.roadmap-item {
+    display: flex;
+    align-items: flex-start;
+    margin: 12px 0;
+    line-height: 1.6;
+    padding-left: 15px;
+}
+
+.bullet {
+    color: #2988e8;
+    margin-right: 10px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.roadmap-item span:last-child {
+    flex: 1;
+}
+
+.roadmap-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.3s ease-out forwards;
+    animation-delay: 0.2s;
+}
+
+.download-button {
+    padding: 12px 25px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.download-button:hover {
+    background: #219a52;
+}
+
+.typing-line {
+    animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.typing-line .roadmap-item,
+.typing-line h2,
+.typing-line h3 {
+    border-right: 2px solid #2988e8;
+    animation: blink 0.3s step-end infinite;
+}
+
+@keyframes blink {
+    from, to {
+        border-color: transparent;
+    }
+    50% {
+        border-color: #2988e8;
+    }
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media print {
+    .roadmap-actions {
+        display: none;
+    }
+    
+    .roadmap-section {
+        border-left: 2px solid #2988e8;
+        background: none;
+        page-break-inside: avoid;
+    }
+}
