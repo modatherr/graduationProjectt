@@ -34,6 +34,8 @@ const ProgrammingRoadmap = () => {
     const [displayedLines, setDisplayedLines] = useState([]);
     const [currentLineIndex, setCurrentLineIndex] = useState(0);
     const [lines, setLines] = useState([]);
+    const [answerType, setAnswerType] = useState('text'); // 'text', 'yesno', 'multiple'
+    const [answerOptions, setAnswerOptions] = useState([]); // for multiple choice
 
     const handleBack = () => {
         window.location.href = '/ai-chat';
@@ -72,177 +74,119 @@ const ProgrammingRoadmap = () => {
         { id: 'php', name: 'PHP', icon: '🐘' }
     ];
 
-    const questions = {
-        python: [
-            'Have you used Python before?',
-            'Are you familiar with object-oriented programming?',
-            'Have you worked with Python libraries like NumPy or Pandas?',
-            'Do you have experience with web frameworks like Django or Flask?',
-            'Have you done any data science or machine learning projects?'
-        ],
-        javascript: [
-            'Have you used JavaScript before?',
-            'Are you familiar with modern ES6+ features?',
-            'Have you worked with frameworks like React or Vue?',
-            'Do you understand asynchronous programming (Promises, async/await)?',
-            'Have you built any full-stack applications?'
-        ],
-        java: [
-            'Have you used Java before?',
-            'Are you familiar with object-oriented programming principles?',
-            'Have you worked with Spring Framework?',
-            'Do you understand Java Collections Framework?',
-            'Have you built any Android applications?'
-        ],
-        cpp: [
-            'Have you programmed in C++ before?',
-            'Are you familiar with memory management in C++?',
-            'Have you used STL (Standard Template Library)?',
-            'Do you understand pointers and references?',
-            'Have you worked on any game development projects?'
-        ],
-        csharp: [
-            'Have you used C# before?',
-            'Are you familiar with .NET Framework?',
-            'Have you worked with ASP.NET?',
-            'Do you understand LINQ?',
-            'Have you developed any Windows applications?'
-        ],
-        ruby: [
-            'Have you used Ruby before?',
-            'Are you familiar with Ruby on Rails?',
-            'Have you worked with gems and bundler?',
-            'Do you understand Ruby metaprogramming?',
-            'Have you built any web applications with Ruby?'
-        ],
-        go: [
-            'Have you used Go before?',
-            'Are you familiar with Go concurrency (goroutines)?',
-            'Have you worked with Go packages and modules?',
-            'Do you understand Go interfaces?',
-            'Have you built any microservices with Go?'
-        ],
-        rust: [
-            'Have you used Rust before?',
-            'Are you familiar with Rust ownership model?',
-            'Have you worked with cargo and crates?',
-            'Do you understand lifetimes in Rust?',
-            'Have you built any systems programming projects?'
-        ],
-        swift: [
-            'Have you used Swift before?',
-            'Are you familiar with iOS development?',
-            'Have you worked with SwiftUI?',
-            'Do you understand Swift protocols and extensions?',
-            'Have you published any apps on the App Store?'
-        ],
-        kotlin: [
-            'Have you used Kotlin before?',
-            'Are you familiar with Android development?',
-            'Have you worked with Kotlin coroutines?',
-            'Do you understand Kotlin null safety?',
-            'Have you built any Android apps with Kotlin?'
-        ],
-        typescript: [
-            'Have you used TypeScript before?',
-            'Are you familiar with TypeScript types and interfaces?',
-            'Have you worked with decorators?',
-            'Do you understand generics in TypeScript?',
-            'Have you built any large-scale applications with TypeScript?'
-        ],
-        php: [
-            'Have you used PHP before?',
-            'Are you familiar with modern PHP frameworks like Laravel?',
-            'Have you worked with Composer?',
-            'Do you understand PHP namespaces and autoloading?',
-            'Have you built any CMS or e-commerce sites?'
-        ]
-    };
+    // حذف جميع الأسئلة الثابتة والمنطق القديم
 
+    // منطق توليد السؤال الأول
     const handleLanguageSelect = (language) => {
         setSelectedLanguage(language);
-        setCurrentQuestion(0);
         setUserAnswers([]);
         setStep('questions');
+        setCurrentQuestion({
+            text: `What is your goal for learning ${programmingLanguages.find(l => l.id === language)?.name}?`,
+            type: 'text',
+            options: []
+        });
+        setAnswerType('text');
+        setAnswerOptions([]);
     };
 
-    const handleAnswer = async (answer) => {
-        const newAnswers = [...userAnswers, answer];
-        setUserAnswers(newAnswers);
+    // منطق التحقق من ذكر لغة أخرى في الإجابة
+    const checkForOtherLanguage = (answer, currentLangId) => {
+        const allLangs = programmingLanguages.map(l => l.name.toLowerCase());
+        const currentLang = programmingLanguages.find(l => l.id === currentLangId)?.name.toLowerCase();
+        for (let lang of allLangs) {
+            if (lang !== currentLang && answer.toLowerCase().includes(lang)) {
+                return lang;
+            }
+        }
+        return null;
+    };
 
-        if (currentQuestion < questions[selectedLanguage].length - 1) {
-            setCurrentQuestion(currentQuestion + 1);
-        } else {
-            setStep('roadmap');
-            await generateRoadmap(newAnswers);
+    // منطق توليد سؤال جديد ديناميكيًا من الذكاء الاصطناعي
+    const MAX_QUESTIONS = 7;
+    const generateNextQuestion = async (answers) => {
+        setLoading(true);
+        setError('');
+        try {
+            const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            const langName = programmingLanguages.find(l => l.id === selectedLanguage)?.name;
+            const prompt = `You are an expert programming learning assistant. Based on the following user answers about learning ${langName}, generate the next most relevant question to help build a personalized learning roadmap.\n\nUser Answers:\n${answers.map((a, i) => `Q${i+1}: ${a.question}\nA${i+1}: ${a.answer}`).join('\n')}\n\nInstructions:\n- The question must be in English.\n- Also, specify the answer type: 'yesno' (for Yes/No), 'text' (for free text), or 'multiple' (for multiple choice).\n- If 'multiple', provide the options as a list.\n- If the user mentions a different programming language than ${langName}, reply: 'It seems you are interested in [LANG], but you are currently in the ${langName} section. Please switch to the [LANG] section for accurate results.' and do not generate a new question.\n- Respond in JSON format: {"question": "...", "type": "yesno|text|multiple", "options": [..] } or {"message": "..."} if language mismatch.\n- Do not ask more than ${MAX_QUESTIONS} questions in total.\n- If you have enough information, reply with {"done": true} instead of a question.`;
+            if (answers.length >= MAX_QUESTIONS) {
+                setStep('roadmap');
+                await generateRoadmap(answers.map(a => a.answer));
+                return;
+            }
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            let json;
+            try {
+                json = JSON.parse(response.text().replace(/```json|```/g, '').trim());
+            } catch (e) {
+                // fallback: try to extract JSON
+                const match = response.text().match(/\{[\s\S]*\}/);
+                if (match) {
+                    json = JSON.parse(match[0]);
+                } else {
+                    throw new Error('Invalid AI response');
+                }
+            }
+            if (json.message) {
+                setError(json.message);
+                setLoading(false);
+                return;
+            }
+            if (json.done) {
+                setStep('roadmap');
+                await generateRoadmap(answers.map(a => a.answer));
+                return;
+            }
+            setCurrentQuestion({ text: json.question, type: json.type, options: json.options || [] });
+            setAnswerType(json.type);
+            setAnswerOptions(json.options || []);
+        } catch (error) {
+            setError('Failed to generate the next question. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
+    // حالة إذا وافق المستخدم على الاستمرار في المسار الحالي بعد تحذير اللغة
+    const [continueAfterLangWarning, setContinueAfterLangWarning] = useState(false);
+    const [pendingAnswer, setPendingAnswer] = useState(null);
+
+    // منطق الإجابة على السؤال الحالي
+    const handleAnswer = async (answer) => {
+        // إذا كان هناك تحذير لغة والمستخدم وافق على الاستمرار
+        if (continueAfterLangWarning) {
+            setContinueAfterLangWarning(false);
+            setPendingAnswer(null);
+            const newAnswers = [...userAnswers, { question: currentQuestion.text, answer }];
+            setUserAnswers(newAnswers);
+            await generateNextQuestion(newAnswers);
+            return;
+        }
+        // تحقق من ذكر لغة أخرى (حتى في أول سؤال)
+        const otherLang = checkForOtherLanguage(answer, selectedLanguage);
+        if (otherLang) {
+            setError(`It seems you are interested in ${otherLang.charAt(0).toUpperCase() + otherLang.slice(1)}, but you are currently in the ${programmingLanguages.find(l => l.id === selectedLanguage)?.name} section. Please switch to the ${otherLang.charAt(0).toUpperCase() + otherLang.slice(1)} section for accurate results.`);
+            setPendingAnswer(answer);
+            setContinueAfterLangWarning(false);
+            return;
+        }
+        const newAnswers = [...userAnswers, { question: currentQuestion.text, answer }];
+        setUserAnswers(newAnswers);
+        await generateNextQuestion(newAnswers);
+    };
+
+    // توليد الرودماب مع تقييم المستوى بناءً على الإجابات
     const generateRoadmap = async (userAnswers) => {
         setLoading(true);
         setError('');
         try {
             const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-            const prompt = `Create a detailed programming roadmap for ${selectedLanguage}. Do not use any special characters or markdown formatting. Format the response as plain text with clear headings and bullet points, based on the following user responses:
-
-Questions and Answers:
-${questions[selectedLanguage].map((q, i) => `Q: ${q}\nA: ${userAnswers[i]}`).join('\n\n')}
-
-Structure the response with these exact headings and subheadings (without any special characters):
-
-SKILL LEVEL ASSESSMENT
-[Assess current skill level based on answers]
-
-LEARNING PATH
-Fundamentals
-[List fundamental concepts to learn]
-
-Intermediate Concepts
-[List intermediate concepts]
-
-Advanced Topics
-[List advanced topics]
-
-PROJECT SUGGESTIONS
-Beginner Projects
-[List beginner project ideas]
-
-Intermediate Projects
-[List intermediate project ideas]
-
-Advanced Projects
-[List advanced project ideas]
-
-LEARNING RESOURCES
-Documentation
-[List official documentation]
-
-Recommended Courses
-[List recommended courses]
-
-Tutorials and Books
-[List tutorials and books]
-
-TIMELINE
-Phase 1: Fundamentals
-[Estimated time and milestones]
-
-Phase 2: Intermediate
-[Estimated time and milestones]
-
-Phase 3: Advanced
-[Estimated time and milestones]
-
-BEST PRACTICES
-[List best practices]
-
-COMMON PITFALLS
-[List common pitfalls to avoid]
-
-Important: Do not use any asterisks (*), hashes (#), or other special characters. Use plain text only.`;
-
+            const prompt = `Create a detailed programming roadmap for ${selectedLanguage}. Do not use any special characters or markdown formatting. Format the response as plain text with clear headings and bullet points, based on the following user responses:\n\nQuestions and Answers:\n${userAnswers.map((a, i) => `Q: ${a.question}\nA: ${a}`).join('\n\n')}\n\nStructure the response with these exact headings and subheadings (without any special characters):\n\nSKILL LEVEL ASSESSMENT\n[Assess current skill level (beginner, intermediate, advanced) based on the user's answers and explain why. Do not say 'Cannot assess skill level without user answers'.]\n\nLEARNING PATH\nFundamentals\n[List fundamental concepts to learn]\nIntermediate Concepts\n[List intermediate concepts]\nAdvanced Topics\n[List advanced topics]\n\nPROJECT SUGGESTIONS\nBeginner Projects\n[List beginner project ideas]\nIntermediate Projects\n[List intermediate project ideas]\nAdvanced Projects\n[List advanced project ideas]\n\nLEARNING RESOURCES\nDocumentation\n[List official documentation]\nRecommended Courses\n[List recommended courses]\nTutorials and Books\n[List tutorials and books]\n\nTIMELINE\nPhase 1: Fundamentals\n[Estimated time and milestones]\nPhase 2: Intermediate\n[Estimated time and milestones]\nPhase 3: Advanced\n[Estimated time and milestones]\n\nBEST PRACTICES\n[List best practices]\n\nCOMMON PITFALLS\n[List common pitfalls to avoid]\n\nImportant: Do not use any asterisks (*), hashes (#), or other special characters. Use plain text only.`;
             const result = await model.generateContent(prompt);
             const response = await result.response;
             // Clean up any remaining special characters
@@ -380,18 +324,48 @@ Important: Do not use any asterisks (*), hashes (#), or other special characters
         </div>
     );
 
+    // واجهة الأسئلة الذكية
     const renderQuestions = () => (
         <div className="questions-container">
-            <h3 className="question-text">{questions[selectedLanguage][currentQuestion]}</h3>
+            <div className="question-progress">Question {userAnswers.length + 1} of {MAX_QUESTIONS} (AI may finish earlier)</div>
+            <h3 className="question-text">{currentQuestion?.text}</h3>
             <div className="answer-buttons">
-                <button onClick={() => handleAnswer('Yes')}>Yes</button>
-                <button onClick={() => handleAnswer('Somewhat')}>Somewhat</button>
-                <button onClick={() => handleAnswer('No')}>No</button>
+                {error && pendingAnswer && !continueAfterLangWarning ? (
+                    <>
+                        <div className="error">{error}</div>
+                        <button onClick={() => {
+                            setContinueAfterLangWarning(true);
+                            setError('');
+                        }}>Continue in this section anyway</button>
+                        <button onClick={() => {
+                            setError('');
+                            setPendingAnswer(null);
+                        }}>Cancel</button>
+                    </>
+                ) : (
+                    <>
+                        {answerType === 'yesno' && (
+                            <>
+                                <button onClick={() => handleAnswer('Yes')}>Yes</button>
+                                <button onClick={() => handleAnswer('No')}>No</button>
+                            </>
+                        )}
+                        {answerType === 'multiple' && answerOptions.length > 0 && answerOptions.map((opt, idx) => (
+                            <button key={idx} onClick={() => handleAnswer(opt)}>{opt}</button>
+                        ))}
+                        {answerType === 'text' && (
+                            <form onSubmit={e => { e.preventDefault(); const val = e.target.elements[0].value; if(val) handleAnswer(val); }}>
+                                <input type="text" placeholder="Type your answer..." autoFocus />
+                                <button type="submit">Submit</button>
+                            </form>
+                        )}
+                    </>
+                )}
             </div>
             <div className="progress-bar">
                 <div
                     className="progress"
-                    style={{ width: `${((currentQuestion + 1) / questions[selectedLanguage].length) * 100}%` }}
+                    style={{ width: `${((userAnswers.length + 1) / MAX_QUESTIONS) * 100}%` }}
                 ></div>
             </div>
         </div>
