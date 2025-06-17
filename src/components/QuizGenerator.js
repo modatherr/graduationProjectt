@@ -9,7 +9,14 @@ const QuizGenerator = () => {
     const [quiz, setQuiz] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
+    const [answers, setAnswers] = useState({});
+    const [discussions, setDiscussions] = useState({});
+    const [discussionInputs, setDiscussionInputs] = useState({});
+    const [discussionLoading, setDiscussionLoading] = useState({});
+    const [answerLoading, setAnswerLoading] = useState({});
+    const [parsedQuestions, setParsedQuestions] = useState([]);
+    const [showDiscussionInput, setShowDiscussionInput] = useState({});
+    const [lectureContent, setLectureContent] = useState("");
     const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY);
 
     const extractPDFContent = async (file) => {
@@ -101,6 +108,61 @@ const QuizGenerator = () => {
         doc.save('practice_quiz.pdf');
     };
 
+    // Helper to extract questions from quiz text
+    const extractQuestions = (quizText) => {
+        const lines = quizText.split('\n');
+        const questions = [];
+        let current = null;
+        lines.forEach(line => {
+            if (line.trim().startsWith('Q') || line.trim().startsWith('T/F') || line.trim().startsWith('Written')) {
+                if (current) questions.push(current);
+                current = { question: line.trim(), options: [] };
+            } else if (line.trim().match(/^[A-D]\)/)) {
+                if (current) current.options.push(line.trim());
+            } else if (line.trim() === '' && current) {
+                questions.push(current);
+                current = null;
+            }
+        });
+        if (current) questions.push(current);
+        return questions;
+    };
+
+    // Helper to clean markdown formatting from AI output
+    const cleanMarkdown = (text) => {
+        return text
+            .replace(/\*\*([^*]+)\*\*/g, '$1') // bold
+            .replace(/\*([^*]+)\*/g, '$1') // italic
+            .replace(/`([^`]+)`/g, '$1') // inline code
+            .replace(/\n{2,}/g, '\n') // remove extra newlines
+            .replace(/^- /gm, '') // remove bullet dashes
+            .replace(/\n- /g, '\n') // remove bullet dashes
+            .replace(/\n\s*\*/g, '\n') // remove bullet stars
+            .replace(/\*/g, '') // remove any remaining stars
+            .replace(/Discussion:/g, '') // remove 'Discussion:' label
+            .trim();
+    };
+
+    // Helper to format answer/discussion as a numbered list if possible
+    const formatAnswer = (text) => {
+        const cleaned = cleanMarkdown(text);
+        // Detect numbered points (e.g., 1. ... 2. ...)
+        const numbered = cleaned.match(/\d+\.\s/);
+        if (numbered) {
+            // Split by numbers (1. 2. 3. ...)
+            const parts = cleaned.split(/(?=\d+\.\s)/g).map(s => s.trim()).filter(Boolean);
+            if (parts.length > 1) {
+                return (
+                    <ol style={{ paddingLeft: 20, margin: 0 }}>
+                        {parts.map((p, i) => <li key={i} style={{ marginBottom: 8, lineHeight: 1.7 }}>{p.replace(/^\d+\.\s/, '')}</li>)}
+                    </ol>
+                );
+            }
+        }
+        // Otherwise, split by newlines
+        return cleaned.split(/\n+/).map((line, i) => <div key={i} style={{ marginBottom: 6 }}>{line}</div>);
+    };
+
     const generateQuiz = async () => {
         if (!file) {
             setError('Please upload a PDF file first');
@@ -112,6 +174,7 @@ const QuizGenerator = () => {
             setError('');
 
             const fileContent = await extractPDFContent(file);
+            setLectureContent(fileContent);
             const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
             const prompt = `Generate a comprehensive practice quiz based on the following lecture content. Include:
@@ -145,10 +208,12 @@ const QuizGenerator = () => {
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
-            const formattedQuiz = formatQuiz(await response.text());
+            const quizText = await response.text();
+            const formattedQuiz = formatQuiz(quizText);
 
             setQuiz(formattedQuiz);
-            generatePDF(await response.text());
+            setParsedQuestions(extractQuestions(quizText));
+            generatePDF(quizText);
         } catch (err) {
             console.error('Quiz generation error:', err);
 
@@ -165,6 +230,42 @@ const QuizGenerator = () => {
             }
         } finally {
             setLoading(false);
+        }
+    };
+
+    // AI answer fetcher
+    const handleShowAnswer = async (idx, questionObj) => {
+        setAnswerLoading(prev => ({ ...prev, [idx]: true }));
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            const prompt = `Based only on the following lecture content, answer the quiz question below.\nLecture Content:\n${lectureContent}\n\nQuiz Question: ${questionObj.question}${questionObj.options ? '\n' + questionObj.options.join('\n') : ''}\nGive a clear and concise answer based only on the lecture content.`;
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const answerText = await response.text();
+            setAnswers(prev => ({ ...prev, [idx]: answerText }));
+        } catch (e) {
+            setAnswers(prev => ({ ...prev, [idx]: 'Failed to get answer.' }));
+        } finally {
+            setAnswerLoading(prev => ({ ...prev, [idx]: false }));
+        }
+    };
+
+    // AI discussion fetcher
+    const handleDiscuss = async (idx, questionObj) => {
+        const userInput = discussionInputs[idx] || '';
+        if (!userInput) return;
+        setDiscussionLoading(prev => ({ ...prev, [idx]: true }));
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            const prompt = `You are an AI tutor. The student asked about this question from a lecture.\nLecture Content:\n${lectureContent}\n\nQuiz Question: ${questionObj.question}${questionObj.options ? '\n' + questionObj.options.join('\n') : ''}\nStudent's question: ${userInput}\nPlease answer based only on the lecture content above.`;
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const discussionText = await response.text();
+            setDiscussions(prev => ({ ...prev, [idx]: discussionText }));
+        } catch (e) {
+            setDiscussions(prev => ({ ...prev, [idx]: 'Failed to get discussion.' }));
+        } finally {
+            setDiscussionLoading(prev => ({ ...prev, [idx]: false }));
         }
     };
 
@@ -224,7 +325,72 @@ const QuizGenerator = () => {
 
             {quiz && (
                 <div className="quiz-content">
-                    <div dangerouslySetInnerHTML={{ __html: quiz }} />
+                    {/* Render questions with answer/discussion buttons */}
+                    {parsedQuestions.length > 0 ? (
+                        parsedQuestions.map((q, idx) => (
+                            <div key={idx} className="quiz-question-block" style={{
+                                background: '#fff',
+                                borderRadius: '12px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                margin: '24px 0',
+                                padding: '24px',
+                                maxWidth: '600px',
+                                marginLeft: 'auto',
+                                marginRight: 'auto',
+                                direction: 'ltr'
+                            }}>
+                                <div className="question-text" style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: 12, color: '#2d3a4a', textAlign: 'left' }}>
+                                    {q.question}
+                                </div>
+                                {q.options && q.options.length > 0 && (
+                                    <div className="options-list" style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+                                        {q.options.map((opt, i) => (
+                                            <label key={i} style={{
+                                                display: 'flex', alignItems: 'center', background: '#f5f5f5', borderRadius: 6, padding: '8px 12px', border: '1px solid #e0e0e0', justifyContent: 'flex-start', fontWeight: 500, width: '100%', margin: 0
+                                            }}>
+                                                {/* <input type="radio" name={`question-${idx}`} style={{ marginRight: 10, marginLeft: 0 }} disabled /> */}
+                                                <span style={{ fontSize: '1.05rem', cursor: 'pointer', color: '#333', marginLeft: 8, textAlign: 'left', width: '100%', display: 'block' }}>{opt}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+                                <div className="question-actions" style={{ display: 'flex', gap: 8, justifyContent: 'flex-start', marginBottom: 10 }}>
+                                    <button onClick={() => handleShowAnswer(idx, q)} disabled={answerLoading[idx]} style={{ padding: '6px 18px', borderRadius: 6, background: '#1976d2', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
+                                        {answerLoading[idx] ? 'Loading Answer...' : 'Show Answer'}
+                                    </button>
+                                    <button onClick={() => setShowDiscussionInput(prev => ({ ...prev, [idx]: true }))} style={{ padding: '6px 18px', borderRadius: 6, background: '#43a047', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Discuss</button>
+                                </div>
+                                {answers[idx] && (
+                                    <div className="answer-block" style={{ background: '#f1f8e9', borderRadius: 8, padding: 12, margin: '10px 0', color: '#1b5e20', fontWeight: 'bold', fontSize: '1rem' }}>
+                                        <span style={{ color: '#388e3c' }}>Model Answer:</span>
+                                        <div style={{ fontWeight: 'normal', color: '#222', marginTop: 6 }}>{formatAnswer(answers[idx])}</div>
+                                    </div>
+                                )}
+                                {showDiscussionInput[idx] && (
+                                    <div className="discussion-block" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                                        <input
+                                            type="text"
+                                            placeholder="Ask about this question..."
+                                            value={typeof discussionInputs[idx] === 'string' ? discussionInputs[idx] : ''}
+                                            onChange={e => setDiscussionInputs(prev => ({ ...prev, [idx]: e.target.value }))}
+                                            style={{ padding: '6px 10px', color:"black", borderRadius: 6, border: '1px solid #bbb', minWidth: 180 }}
+                                        />
+                                        <button onClick={() => handleDiscuss(idx, q)} disabled={discussionLoading[idx]} style={{ padding: '6px 14px', borderRadius: 6, background: '#ffa000', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
+                                            {discussionLoading[idx] ? 'Discussing...' : 'Send'}
+                                        </button>
+                                    </div>
+                                )}
+                                {discussions[idx] && (
+                                    <div className="discussion-answer" style={{ background: '#e3f2fd', borderRadius: 8, padding: 10, margin: '10px 0', color: '#0d47a1', fontWeight: 'bold', fontSize: '1rem' }}>
+                                        <span style={{ color: '#1976d2' }}>Discussion:</span>
+                                        <div style={{ fontWeight: 'normal', color: '#222', marginTop: 6 }}>{formatAnswer(discussions[idx])}</div>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    ) : (
+                        <div dangerouslySetInnerHTML={{ __html: quiz }} />
+                    )}
                 </div>
             )}
         </div>
